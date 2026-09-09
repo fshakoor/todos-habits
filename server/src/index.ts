@@ -9,10 +9,76 @@ import fastifyStatic from '@fastify/static'
 import './db.js'
 import { clearDone, createTask, deleteTask, listTasks, taskInput, taskPatch, updateTask } from './tasks.js'
 import { createProject, deleteProject, listProjects, projectInput, updateProject } from './projects.js'
+import { createHabit, deleteHabit, habitInput, listHabits, tapHabit, updateHabit } from './habits.js'
+import { checkDaily, createDaily, dailyInput, deleteDaily, listDailies, updateDaily } from './dailies.js'
+import { getStats } from './stats.js'
+import { runCron } from './cron.js'
 
 const app = Fastify({ logger: false })
 
 app.get('/api/health', async () => ({ ok: true }))
+
+// habit tracker: the whole board in one shot (runs the daily rollover first)
+app.get('/api/board', async () => {
+  runCron()
+  return { stats: getStats(), habits: listHabits(), dailies: listDailies() }
+})
+
+// habits
+app.post('/api/habits', async (req, reply) => {
+  const parsed = habitInput.safeParse(req.body)
+  if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'invalid' })
+  return createHabit(parsed.data)
+})
+
+app.put('/api/habits/:id', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  const h = updateHabit(id, req.body as Record<string, unknown>)
+  if (!h) return reply.code(404).send({ error: 'not found' })
+  return h
+})
+
+app.delete('/api/habits/:id', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  if (!deleteHabit(id)) return reply.code(404).send({ error: 'not found' })
+  return { ok: true }
+})
+
+app.post('/api/habits/:id/tap', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  const dir = (req.body as { direction?: number }).direction === -1 ? -1 : 1
+  const out = tapHabit(id, dir)
+  if (!out) return reply.code(404).send({ error: 'not found' })
+  return out
+})
+
+// dailies
+app.post('/api/dailies', async (req, reply) => {
+  const parsed = dailyInput.safeParse(req.body)
+  if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'invalid' })
+  return createDaily(parsed.data)
+})
+
+app.put('/api/dailies/:id', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  const d = updateDaily(id, req.body as Record<string, unknown>)
+  if (!d) return reply.code(404).send({ error: 'not found' })
+  return d
+})
+
+app.delete('/api/dailies/:id', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  if (!deleteDaily(id)) return reply.code(404).send({ error: 'not found' })
+  return { ok: true }
+})
+
+app.post('/api/dailies/:id/check', async (req, reply) => {
+  const id = Number((req.params as { id: string }).id)
+  const done = (req.body as { done?: boolean }).done !== false
+  const out = checkDaily(id, done)
+  if (!out) return reply.code(404).send({ error: 'not found' })
+  return out
+})
 
 // projects
 app.get('/api/projects', async () => listProjects())

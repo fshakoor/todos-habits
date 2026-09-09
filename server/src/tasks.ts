@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { q } from './db.js'
+import { q, type Row } from './db.js'
 
 const dateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
@@ -44,7 +44,7 @@ export function createTask(data: z.infer<typeof taskInput>) {
 export function updateTask(id: number, data: z.infer<typeof taskPatch>) {
   const cur = q.get('SELECT * FROM tasks WHERE id = ?', id)
   if (!cur) return undefined
-  const next = { ...cur, ...data }
+  const next: Row = { ...cur, ...data }
   if (data.done !== undefined) {
     next.done = data.done ? 1 : 0
     next.completed_at = data.done ? Date.now() : null
