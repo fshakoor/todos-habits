@@ -1,14 +1,24 @@
 import { useState } from 'react'
 import { TasksView } from './views/TasksView'
 import { HabitsView } from './views/HabitsView'
+import { SettingsSheet } from './components/SettingsSheet'
+import { Gear } from './components/icons'
+import { loadTheme, saveTheme, type ThemeMode } from './lib/theme'
 
 type View = 'tasks' | 'habits'
 
 export function App() {
   const [view, setView] = useState<View>('tasks')
+  const [theme, setThemeState] = useState<ThemeMode>(loadTheme)
+  const [settings, setSettings] = useState(false)
+
+  const setTheme = (m: ThemeMode) => {
+    setThemeState(m)
+    saveTheme(m)
+  }
 
   return (
-    <div className="mx-auto flex h-full max-w-2xl flex-col px-4">
+    <div className="mx-auto flex h-full max-w-2xl flex-col px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <header className="flex items-center justify-between py-4">
         <div className="inline-flex rounded-full border border-line bg-surface p-1 text-sm">
           <button
@@ -24,9 +34,14 @@ export function App() {
             Habits
           </button>
         </div>
+        <button onClick={() => setSettings(true)} className="rounded-full p-2 text-faint hover:text-ink" aria-label="settings">
+          <Gear width={18} height={18} />
+        </button>
       </header>
 
       <main className="min-h-0 flex-1">{view === 'tasks' ? <TasksView /> : <HabitsView />}</main>
+
+      {settings && <SettingsSheet theme={theme} setTheme={setTheme} onClose={() => setSettings(false)} />}
     </div>
   )
 }
