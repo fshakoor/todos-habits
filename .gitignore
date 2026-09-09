@@ -7,7 +7,4 @@ server/data/
 .env
 .env.local
 
-# editor / assistant junk
-.claude/
-CLAUDE.md
 .DS_Store
