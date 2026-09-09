@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { TasksView } from './views/TasksView'
+import { HabitsView } from './views/HabitsView'
 
 type View = 'tasks' | 'habits'
 
@@ -25,9 +26,7 @@ export function App() {
         </div>
       </header>
 
-      <main className="min-h-0 flex-1">
-        {view === 'tasks' ? <TasksView /> : <div className="text-dim">Habits go here.</div>}
-      </main>
+      <main className="min-h-0 flex-1">{view === 'tasks' ? <TasksView /> : <HabitsView />}</main>
     </div>
   )
 }
