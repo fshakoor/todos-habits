@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import type { Project, Task, TaskPatch } from '../lib/api'
 import { PRIORITIES } from '../lib/priority'
-import { Trash, X } from './icons'
+import { Trash } from './icons'
+import { Modal } from './Modal'
 import { dotColor } from './TaskRow'
 
 type Props = {
@@ -32,19 +33,8 @@ export function TaskEditor({ task, projects, onSave, onDelete, onClose }: Props)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={save}>
-      <div
-        className="card w-full max-w-lg rounded-b-none p-4 sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="eyebrow">Edit task</span>
-          <button onClick={save} className="rounded-md p-1 text-dim hover:text-ink" aria-label="close">
-            <X width={18} height={18} />
-          </button>
-        </div>
-
-        <input
+    <Modal title="Edit task" onClose={save}>
+      <input
           autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -129,7 +119,6 @@ export function TaskEditor({ task, projects, onSave, onDelete, onClose }: Props)
             Save
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

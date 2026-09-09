@@ -4,7 +4,11 @@ import { X } from './icons'
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={onClose}>
-      <div className="card w-full max-w-lg rounded-b-none p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="card w-full max-w-lg rounded-b-none p-4 sm:rounded-2xl"
+        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-3 flex items-center justify-between">
           <span className="eyebrow">{title}</span>
           <button onClick={onClose} className="rounded-md p-1 text-dim hover:text-ink" aria-label="close">
