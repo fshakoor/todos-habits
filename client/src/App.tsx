@@ -7,10 +7,21 @@ import { loadTheme, saveTheme, type ThemeMode } from './lib/theme'
 
 type View = 'tasks' | 'habits'
 
+const loadView = (): View => (localStorage.getItem('th-view') === 'habits' ? 'habits' : 'tasks')
+
 export function App() {
-  const [view, setView] = useState<View>('tasks')
+  const [view, setViewState] = useState<View>(loadView)
   const [theme, setThemeState] = useState<ThemeMode>(loadTheme)
   const [settings, setSettings] = useState(false)
+
+  const setView = (v: View) => {
+    setViewState(v)
+    try {
+      localStorage.setItem('th-view', v)
+    } catch {
+      // ignore unwritable storage
+    }
+  }
 
   const setTheme = (m: ThemeMode) => {
     setThemeState(m)
