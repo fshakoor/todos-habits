@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { q, type Row } from './db.js'
-import { applyDelta, damage, reward } from './stats.js'
+import { applyDelta, damage, reward, type Gained } from './stats.js'
 import { todayKey } from './time.js'
 
 export const habitInput = z.object({
@@ -57,23 +57,27 @@ export function deleteHabit(id: number): boolean {
 }
 
 // A + or - tap: move the habit's value, then reward or ding the character.
-export function tapHabit(id: number, direction: 1 | -1): { habit: Row; stats: Row } | undefined {
+export function tapHabit(id: number, direction: 1 | -1): { habit: Row; stats: Row; gained: Gained } | undefined {
   const h = q.get('SELECT * FROM habits WHERE id = ?', id)
   if (!h) return undefined
   const value = h.value as number
 
   let stats: Row
+  let gained: Gained
   if (direction === 1) {
-    const r = reward(h.difficulty, (getLevel()), value)
+    const r = reward(h.difficulty, getLevel(), value)
+    gained = { xp: r.xp, gold: r.gold, hp: 0 }
     stats = applyDelta({ xp: r.xp, gold: r.gold })
   } else {
-    stats = applyDelta({ hp: -damage(h.difficulty, value, 'habit') })
+    const hp = -damage(h.difficulty, value, 'habit')
+    gained = { xp: 0, gold: 0, hp }
+    stats = applyDelta({ hp })
   }
 
   q.run('UPDATE habits SET value = ? WHERE id = ?', value + direction, id)
   q.run('INSERT INTO habit_events (habit_id, date, direction, created) VALUES (?, ?, ?, ?)', id, todayKey(), direction, Date.now())
 
-  return { habit: withCounts(q.get('SELECT * FROM habits WHERE id = ?', id)!), stats }
+  return { habit: withCounts(q.get('SELECT * FROM habits WHERE id = ?', id)!), stats, gained }
 }
 
 function getLevel(): number {

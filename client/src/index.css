@@ -101,6 +101,11 @@
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
 }
+.card-sheen {
+  background:
+    radial-gradient(130% 100% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 62%),
+    var(--color-surface);
+}
 
 button,
 .press {
@@ -130,6 +135,30 @@ button:active,
   .rise {
     animation: none;
   }
+}
+
+@keyframes floatUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+.floatfx {
+  animation: floatUp 0.9s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes pop {
+  50% {
+    transform: scale(1.18);
+  }
+}
+.pop {
+  animation: pop 0.28s ease;
 }
 
 .no-scrollbar {

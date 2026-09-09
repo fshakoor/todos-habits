@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { q, type Row } from './db.js'
-import { applyDelta, getStats, reward } from './stats.js'
+import { applyDelta, getStats, reward, type Gained } from './stats.js'
 import { addDays, todayKey, weekday } from './time.js'
 
 export const dailyInput = z.object({
@@ -58,24 +58,27 @@ export function deleteDaily(id: number): boolean {
 }
 
 // Check or uncheck today's occurrence, moving the streak and the reward with it.
-export function checkDaily(id: number, done: boolean): { daily: Row; stats: Row } | undefined {
+export function checkDaily(id: number, done: boolean): { daily: Row; stats: Row; gained: Gained } | undefined {
   const d = q.get('SELECT * FROM dailies WHERE id = ?', id)
   if (!d) return undefined
   const today = todayKey()
   const already = !!q.get('SELECT 1 FROM daily_checks WHERE daily_id = ? AND date = ?', id, today)
 
   let stats = getStats()
+  let gained: Gained = { xp: 0, gold: 0, hp: 0 }
   if (done && !already) {
     q.run('INSERT INTO daily_checks (daily_id, date) VALUES (?, ?)', id, today)
     q.run('UPDATE dailies SET streak = streak + 1 WHERE id = ?', id)
     const r = reward(d.difficulty, stats.level as number, 0)
+    gained = { xp: r.xp, gold: r.gold, hp: 0 }
     stats = applyDelta({ xp: r.xp, gold: r.gold })
   } else if (!done && already) {
     q.run('DELETE FROM daily_checks WHERE daily_id = ? AND date = ?', id, today)
     q.run('UPDATE dailies SET streak = MAX(0, streak - 1) WHERE id = ?', id)
     const r = reward(d.difficulty, stats.level as number, 0)
+    gained = { xp: -r.xp, gold: -r.gold, hp: 0 }
     stats = applyDelta({ xp: -r.xp, gold: -r.gold })
   }
 
-  return { daily: decorate(q.get('SELECT * FROM dailies WHERE id = ?', id)!), stats }
+  return { daily: decorate(q.get('SELECT * FROM dailies WHERE id = ?', id)!), stats, gained }
 }

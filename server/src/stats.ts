@@ -36,6 +36,7 @@ export function getStats(): Row {
 }
 
 export type Delta = { xp?: number; gold?: number; hp?: number }
+export type Gained = { xp: number; gold: number; hp: number }
 
 // Apply a change to the sheet, running level ups and the death penalty.
 export function applyDelta(d: Delta): Row {
